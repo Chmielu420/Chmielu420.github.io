@@ -29,10 +29,7 @@ imageInput.addEventListener('change', (event) => {
     var data = new FormData();
     data.append("image", file);
 
-    fetch('	https://api.imgur.com/3/image' ,{
-        method: 'POST',
-        headers: {
-            'Authorization': 'Client-ID legacy-api-59554f7dfd-khx5f/VlEnyf6nhR-1830999'
+    fetch('	https://api.imgur.com/3/image'
         },
         body: data
     })
