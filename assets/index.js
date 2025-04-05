@@ -30,7 +30,9 @@ imageInput.addEventListener('change', (event) => {
     data.append("image", file);
 
     fetch('	https://api.imgur.com/3/image' ,{
-method: 'POST' },
+method: 'POST',
+headers:{
+'Authorization': 'Cliernt-ID OwnImageID'
         body: data
     })
     .then(result => result.json())
