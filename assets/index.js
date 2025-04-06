@@ -119,14 +119,9 @@ function processForm() {
         empty[0].scrollIntoView({ behavior: 'smooth' });
     }
 }
+function forwardToId(params){
 
-function forwardToId(params) {
-    const formData = {
-        params: params.toString(),
-        image: localStorage.getItem('uploadedImage') || ''
-    };
-    localStorage.setItem('formData', JSON.stringify(formData));
-    window.location.href = '/id?' + params.toString();
+    location.href = "/id?" + params
 }
 
 function isEmpty(value) {
