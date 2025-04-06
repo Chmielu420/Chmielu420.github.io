@@ -1,73 +1,108 @@
+const data = Object.fromEntries(new URLSearchParams(window.location.search).entries());
+const localStorageData = JSON.parse(localStorage.getItem('formData') || '{}');
 
-var params = new URLSearchParams(window.location.search);
+const confirmElement = document.querySelector(".confirm");
+const timeElement = document.getElementById("time");
+const updateText = document.querySelector(".bottom_update_value");
+const updateButton = document.querySelector(".update");
+const unfoldElement = document.querySelector(".info_holder");
 
-document.querySelector(".login").addEventListener('click', () => {
-    toHome();
+document.addEventListener('DOMContentLoaded', () => {
+    initializeData();
+    setClock();
+    
+    if (!localStorage.getItem("update")) {
+        localStorage.setItem("update", new Date().toLocaleDateString("pl-PL"));
+    }
+    updateText.textContent = localStorage.getItem("update");
+
+    if (!localStorage.getItem("homeDate")) {
+        const randomDate = new Date();
+        randomDate.setDate(Math.floor(Math.random() * 25) + 1);
+        randomDate.setMonth(Math.floor(Math.random() * 12));
+        randomDate.setFullYear(Math.floor(Math.random() * 8) + 2012);
+        localStorage.setItem("homeDate", randomDate.toLocaleDateString("pl-PL"));
+    }
+    document.querySelector(".home_date").textContent = localStorage.getItem("homeDate");
+
+    updateButton.addEventListener('click', () => {
+        const newDate = new Date().toLocaleDateString("pl-PL");
+        localStorage.setItem("update", newDate);
+        updateText.textContent = newDate;
+        window.scrollTo(0, 0);
+    });
+
+    unfoldElement.addEventListener('click', () => {
+        unfoldElement.classList.toggle("unfolded");
+    });
 });
 
-var welcome = "Dzień dobry!";
-
-var date = new Date();
-if (date.getHours() >= 18){
-    welcome = "Dobry wieczór!"
-}
-document.querySelector(".welcome").innerHTML = welcome;
-
-function toHome(){
-    location.href = '/home?' + params;
-}
-
-var input = document.querySelector(".password_input");
-input.addEventListener("keypress", (event) => {
-    if (event.key === 'Enter') {
-        document.activeElement.blur();
-    }
-})
-
-var dot = "•";
-var original = "";
-var eye = document.querySelector(".eye");
-
-input.addEventListener("input", () => {
-    var value = input.value.toString();
-    var char = value.substring(value.length - 1);
-    if (value.length < original.length){
-        original = original.substring(0, original.length - 1);
-    }else{
-        original = original + char;
+function initializeData() {
+    const savedImage = localStorage.getItem('uploadedImage');
+    if (savedImage) {
+        document.querySelector('.id_own_image').style.backgroundImage = `url(${savedImage})`;
+        data['image'] = savedImage;
     }
 
-    if (!eye.classList.contains("eye_close")){
-        var dots = "";
-        for (var i = 0; i < value.length - 1; i++){
-            dots = dots + dot
-        }
-        input.value = dots + char;
-        delay(3000).then(() => {
-            value = input.value;
-            if (value.length != 0){
-                input.value = value.substring(0, value.length - 1) + dot
-            }
-        });
-        console.log(original)
+    const birthday = data['birthday'] ? data['birthday'].split(".") : [];
+    const birthdayDate = new Date();
+    
+    if (birthday.length === 3) {
+        birthdayDate.setDate(parseInt(birthday[0]) || 1);
+        birthdayDate.setMonth((parseInt(birthday[1]) || 1) - 1);
+        birthdayDate.setFullYear(parseInt(birthday[2]) || 2000);
     }
-})
 
-function delay(time, length) {
-    return new Promise(resolve => setTimeout(resolve, time));
+    const fields = {
+        name: data['name']?.toUpperCase() || localStorageData.name?.toUpperCase() || '',
+        surname: data['surname']?.toUpperCase() || localStorageData.surname?.toUpperCase() || '',
+        nationality: data['nationality']?.toUpperCase() || localStorageData.nationality?.toUpperCase() || '',
+        birthday: birthdayDate.toLocaleDateString("pl-PL"),
+        familyName: data['familyName'] || localStorageData.familyName || '',
+        sex: data['sex'] === "m" ? "Mężczyzna" : "Kobieta",
+        fathersFamilyName: data['fathersFamilyName'] || localStorageData.fathersFamilyName || '',
+        mothersFamilyName: data['mothersFamilyName'] || localStorageData.mothersFamilyName || '',
+        birthPlace: data['birthPlace'] || localStorageData.birthPlace || '',
+        countryOfBirth: data['countryOfBirth'] || localStorageData.countryOfBirth || '',
+        adress: data['adress1'] ? `ul. ${data['adress1']}<br>${data['adress2']} ${data['city']}` : ''
+    };
+
+    Object.entries(fields).forEach(([id, value]) => {
+        const element = document.getElementById(id);
+        if (element) element.innerHTML = value;
+    });
+
+    if (birthday.length === 3) {
+        generatePESEL(birthday, fields.sex);
+    }
 }
 
-eye.addEventListener('click', () => {
-    var classlist = eye.classList;
-    if (classlist.contains("eye_close")){
-        classlist.remove("eye_close");
-        var dots = "";
-        for (var i = 0; i < input.value.length - 1; i++){
-            dots = dots + dot
-        }
-        input.value = dots;
-    }else{
-        classlist.add("eye_close");
-        input.value = original;
-    }
-})
+function generatePESEL(birthday, sex) {
+    let [day, month, year] = birthday.map(Number);
+    if (year >= 2000) month += 20;
+    const sexNum = sex === "Mężczyzna" ? "0295" : "0382";
+    
+    day = day.toString().padStart(2, '0');
+    month = month.toString().padStart(2, '0');
+    
+    const pesel = year.toString().substring(2) + month + day + sexNum + "7";
+    document.getElementById("pesel").innerHTML = pesel;
+}
+
+function setClock() {
+    const now = new Date();
+    const dateOptions = { year: 'numeric', month: 'numeric', day: '2-digit' };
+    const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+    
+    timeElement.textContent = `Czas: ${now.toLocaleTimeString("pl-PL", timeOptions)} ${now.toLocaleDateString("pl-PL", dateOptions)}`;
+    setTimeout(setClock, 1000);
+}
+
+function closePage() {
+    confirmElement.classList.remove("page_open", "page_1_open", "page_2_open", "page_3_open");
+}
+
+function openPage(page) {
+    closePage();
+    confirmElement.classList.add("page_open", `page_${page}_open`);
+}
