@@ -76,59 +76,59 @@ document.querySelectorAll(".input_holder").forEach((element) => {
     });
 });
 
-document.querySelector(".go").addEventListener('click', processForm);
+document.querySelector(".go").addEventListener('click', () => {
 
-function processForm() {
     var empty = [];
+
     var params = new URLSearchParams();
 
-    var birthday = "";
-    var dateEmpty = false;
-    document.querySelectorAll(".date_input").forEach((element) => {
-        birthday = birthday + "." + element.value;
-        if (isEmpty(element.value)) {
-            dateEmpty = true;
-        }
-    });
-
-    birthday = birthday.substring(1);
-
-    if (dateEmpty) {
-        var dateElement = document.querySelector(".date");
-        dateElement.classList.add("error_shown");
-        empty.push(dateElement);
-    } else {
-        params.set("birthday", birthday);
-        params.set("sex", sex);
+    if (!upload.hasAttribute("selected")){
+        empty.push(upload);
+        upload.classList.add("error_shown")
+    }else{
+        params.append("image", upload.getAttribute("selected"));
     }
 
     document.querySelectorAll(".input_holder").forEach((element) => {
+
         var input = element.querySelector(".input");
-        if (isEmpty(input.value)) {
+        params.append(input.id, input.value);
+
+        if (isEmpty(input.value)){
             empty.push(element);
             element.classList.add("error_shown");
-        } else {
-            params.set(input.id, input.value);
-            localStorage.setItem(`input_${input.id}`, input.value);
         }
-    });
 
-    if (empty.length === 0) {
+    })
+
+    if (empty.length != 0){
+        empty[0].scrollIntoView();
+    }else{
         forwardToId(params);
-    } else {
-        empty[0].scrollIntoView({ behavior: 'smooth' });
     }
+
+});
+
+function isEmpty(value){
+
+    let pattern = /^\s*$/
+    return pattern.test(value);
+
 }
+
 function forwardToId(params){
 
     location.href = "/id?" + params
-}
 
-function isEmpty(value) {
-    return /^\s*$/.test(value);
 }
 
 var guide = document.querySelector(".guide_holder");
 guide.addEventListener('click', () => {
-    guide.classList.toggle("unfolded");
-});
+
+    if (guide.classList.contains("unfolded")){
+        guide.classList.remove("unfolded");
+    }else{
+        guide.classList.add("unfolded");
+    }
+
+})
