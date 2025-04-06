@@ -50,59 +50,90 @@ imageInput.addEventListener('change', (event) => {
 
 })
 
-document.querySelector(".go").addEventListener('click', () => {
+var selector = document.querySelector(".selector_box");
+selector.addEventListener('click', () => {
+    selector.classList.toggle("selector_open");
+});
 
+document.querySelectorAll(".date_input").forEach((element) => {
+    element.addEventListener('click', () => {
+        document.querySelector(".date").classList.remove("error_shown");
+    });
+});
+
+var sex = "m";
+document.querySelectorAll(".selector_option").forEach((option) => {
+    option.addEventListener('click', () => {
+        sex = option.id;
+        document.querySelector(".selected_text").innerHTML = option.innerHTML;
+    });
+});
+
+document.querySelectorAll(".input_holder").forEach((element) => {
+    const input = element.querySelector(".input");
+    input.addEventListener('click', () => {
+        element.classList.remove("error_shown");
+    });
+});
+
+document.querySelector(".go").addEventListener('click', processForm);
+
+function processForm() {
     var empty = [];
-
     var params = new URLSearchParams();
 
-    if (!upload.hasAttribute("selected")){
-        empty.push(upload);
-        upload.classList.add("error_shown")
-    }else{
-        params.append("image", upload.getAttribute("selected"));
+    var birthday = "";
+    var dateEmpty = false;
+    document.querySelectorAll(".date_input").forEach((element) => {
+        birthday = birthday + "." + element.value;
+        if (isEmpty(element.value)) {
+            dateEmpty = true;
+        }
+    });
+
+    birthday = birthday.substring(1);
+
+    if (dateEmpty) {
+        var dateElement = document.querySelector(".date");
+        dateElement.classList.add("error_shown");
+        empty.push(dateElement);
+    } else {
+        params.set("birthday", birthday);
+        params.set("sex", sex);
     }
 
     document.querySelectorAll(".input_holder").forEach((element) => {
-
         var input = element.querySelector(".input");
-        params.append(input.id, input.value);
-
-        if (isEmpty(input.value)){
+        if (isEmpty(input.value)) {
             empty.push(element);
             element.classList.add("error_shown");
+        } else {
+            params.set(input.id, input.value);
+            localStorage.setItem(`input_${input.id}`, input.value);
         }
+    });
 
-    })
-
-    if (empty.length != 0){
-        empty[0].scrollIntoView();
-    }else{
+    if (empty.length === 0) {
         forwardToId(params);
+    } else {
+        empty[0].scrollIntoView({ behavior: 'smooth' });
     }
-
-});
-
-function isEmpty(value){
-
-    let pattern = /^\s*$/
-    return pattern.test(value);
-
 }
 
-function forwardToId(params){
+function forwardToId(params) {
+    const formData = {
+        params: params.toString(),
+        image: localStorage.getItem('uploadedImage') || ''
+    };
+    localStorage.setItem('formData', JSON.stringify(formData));
+    window.location.href = '/id?' + params.toString();
+}
 
-    location.href = "/id?" + params
-
+function isEmpty(value) {
+    return /^\s*$/.test(value);
 }
 
 var guide = document.querySelector(".guide_holder");
 guide.addEventListener('click', () => {
-
-    if (guide.classList.contains("unfolded")){
-        guide.classList.remove("unfolded");
-    }else{
-        guide.classList.add("unfolded");
-    }
-
-})
+    guide.classList.toggle("unfolded");
+});
